@@ -23,12 +23,17 @@ $(document).ready(function(){
 		game_loop = setInterval(paint, 60);
     }
 	
-	init();
-
+	   
+        init();
+    
+    function playNote(){
+        
+    }
 	 
 	//Moving the snake
 	$(document).keydown(function(e){
 		var letter=e.which;
+        
 		if(letter=="37"){
             direction="left";
         }
@@ -57,18 +62,22 @@ $(document).ready(function(){
     //makes a single random note
 	function make_note(){
         var rand = colorToNote[Math.floor(Math.random() * colorToNote.length)];
+        var pitch=Math.floor(Math.random() * (72 - 50 + 1)) + 50;
+
 		food = {
 			x: Math.round(Math.random()*(width-cellSize)/cellSize), 
 			y: Math.round(Math.random()*(height-cellSize)/cellSize), 
             color:rand[0],
-            note:rand[1],
+            note:pitch,
 		};
         console.log(food);
+        
         return food;
 	}
 	var headColor;
 	function paint(){
         //canvas
+        //console.log(midiLoaded);
 		ctx.fillStyle = "white";
 		ctx.fillRect(0, 0, width, height);
 		ctx.strokeStyle = "black";
@@ -92,6 +101,13 @@ $(document).ready(function(){
 		//if it hits food, increase the length by 1
 		if(headX==food.x && headY==food.y){
 			var tail={x: headX, y: headY};
+            var delay = 0; // play one note every quarter second
+			var note = food.note; // the MIDI note
+			var velocity = 127; // how hard the note hits
+			// play the note
+			MIDI.setVolume(0, 127);
+			MIDI.noteOn(0, note, velocity, delay);
+			MIDI.noteOff(0, note, delay + 0.75);
 			score++;
             make_note();
 		}
@@ -119,6 +135,7 @@ $(document).ready(function(){
 	function check_collision(x, y, array){
         for(var i = 0; i < array.length; i++){
 			if(array[i].x==x && array[i].y==y)
+                
 			 return true;
 		}
 		return false;
@@ -126,7 +143,6 @@ $(document).ready(function(){
     
     //Colors the notes
 	function color_note(x, y){
-        console.log(headColor);
 		ctx.fillStyle = "blue";
 		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
 		ctx.strokeStyle = "white";
