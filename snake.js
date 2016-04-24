@@ -127,7 +127,7 @@ $(document).ready(function(){
     //Colors the notes
 	function color_note(x, y){
         console.log(headColor);
-		ctx.fillStyle = headColor;
+		ctx.fillStyle = "blue";
 		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
