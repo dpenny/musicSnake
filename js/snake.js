@@ -20,13 +20,25 @@ $(document).ready(function(){
         };
     var scale=[53,55,57,58,60,62,64,65]; //f major scale
     
-    var pitchList=[];
+    var pitchList=[]; //list of notes in the snake
+    var oldPitchListLen=3; //number of notes from cycle before
     function init(){
         direction="right";
 		make_snake();
         make_note();	
 		game_loop = setInterval(paint, 60);    
-        song_loop = setInterval(playSnake, 3000);
+
+        var counter = 1500;
+        var myFunction = function(){
+    clearInterval(interval);
+        var numAddedNotes=pitchList.length-oldPitchListLen;
+    counter +=(500*numAddedNotes); //increases interval if a new note has been added
+    oldPitchListLen=pitchList.length;
+    playSnake();
+    interval = setInterval(myFunction, counter);
+}
+var interval = setInterval(myFunction, counter);
+        
     }
 	
 	   
@@ -43,24 +55,23 @@ $(document).ready(function(){
 		}
 	});
     
+    //instead of playing every x seconds, it will always repeat
+    var globalDelay=0.0;
+    
     //plays the snake built so far
     function playSnake(){
-        console.log(pitchList, "list of pitches to play");
         var duration=0.0;
             var delay = .50; 
 			var velocity = 127;
 			MIDI.setVolume(0, 127);
         for (var i=0; i<pitchList.length; i++){
-            console.log(pitchList[i]);
             MIDI.noteOn(0, pitchList[i], velocity, delay);
 			MIDI.noteOff(0, pitchList[i], delay +duration);
             delay=delay+.5;
             
         }
-			
-        
-        
     }
+			 
     //plays a note when it's first eaten
     function playNote(note,duration){
         var delay = 0;
@@ -95,38 +106,42 @@ $(document).ready(function(){
 		for(var i =2; i>=0; i--){          
             var pitch=scale[Math.floor(Math.random() * scale.length)];
             pitchList.push(pitch);
-			musicSnake.push({x: i, y:3, color:"cats", note:pitch});
+			musicSnake.push({x: i, y:3, color:"#f42ada", note:pitch});
 		}
+        //console.log(musicSnake, "snake");
 	}
 	
     
     //makes and returns a single random note
 	function make_note(){
         var rand = colorToNote[Math.floor(Math.random() * colorToNote.length)];
-        var pitch=scale[Math.floor(Math.random() * scale.length)]
-
+        var pitchhhh=scale[Math.floor(Math.random() * scale.length)]
+        //console.log(pitchhhh, "PITCH????")
 		food = {
 			x: Math.round(Math.random()*(width-cellSize)/cellSize), 
 			y: Math.round(Math.random()*(height-cellSize)/cellSize), 
-            color:rand[0],
-            note:pitch,
+            color:"#aaff32",
+            note:pitchhhh,
 		};
-        console.log(availableNotes, "food list");
+        
         availableNotes.push(food);
+        //console.log(availableNotes, "food list");
         return food;
 	}
-
+var headColor;
     function paint(){
         //canvas
 		ctx.fillStyle = "white";
 		ctx.fillRect(0, 0, width, height);
 		ctx.strokeStyle = "black";
 		ctx.strokeRect(0, 0, width, height);
-		
+		//console.log(musicSnake[0], "first");
 		var headX = musicSnake[0].x;
 		var headY = musicSnake[0].y;
-        var headColor=musicSnake[0].color;
-        var headPitch=musicSnake[0].pitch;
+        var headPitch=musicSnake[0].note;
+        //console.log(headPitch, "head pitch")
+         headColor= "#a9fedd"; //pitchToColor[headPitch.toString()];
+        
         //move in the right direction
 		if(direction == "right") headX++;
 		else if(direction == "left") headX--;
@@ -140,7 +155,8 @@ $(document).ready(function(){
 		
         
 		if(headX==food.x && headY==food.y){
-			var tail={x: headX, y: headY};
+			var tail={x: headX, y: headY, pitch:headPitch, color:headColor};
+            
             var delay=0;
 			var note=food.note; 
 			var velocity = 127; 
@@ -157,8 +173,8 @@ $(document).ready(function(){
 			var tail = musicSnake.pop(); //pops out the last cell
 			tail.x = headX;
             tail.y = headY;
-            tail.color="no";
             tail.note=headPitch;
+            tail.color=headColor;
 		}
 		musicSnake.unshift(tail);
         //draw the snake
@@ -167,13 +183,8 @@ $(document).ready(function(){
 			color_note(c.x, c.y);
 		}
 		color_note(food.x, food.y);
-        //draw the notes
-		//for(var i = 0; i < availableNotes.length; i++){
-		//	var f = availableNotes[i];
-		//	color_note(f.x, f.y);
-		//}
-		
-		var score_text = "Score: " + score;
+
+        var score_text = "Score: " + score;
 		ctx.fillText(score_text, 5, height-5)
 	}
 	
@@ -189,7 +200,7 @@ $(document).ready(function(){
     
     //Colors notes
 	function color_note(x, y){
-		ctx.fillStyle = "blue";
+		ctx.fillStyle = headColor;
 		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
@@ -197,7 +208,7 @@ $(document).ready(function(){
     
     //Colors pitches with different colors- will replace color_note
 	function color_note(x, y, color){
-		ctx.fillStyle = "blue";
+		ctx.fillStyle = headColor;
 		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
 		ctx.strokeStyle = color;
 		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
