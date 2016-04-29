@@ -26,6 +26,7 @@ $(document).ready(function(){
         direction="right";
 		make_snake();
         make_note();
+        makeNotes(5);
 
         game_loop = setInterval(paint, 60);    
 
@@ -42,12 +43,17 @@ var interval = setInterval(myFunction, counter);
         
     }
 	
+    //makes multiple notes
+    function makeNotes(amount){
+        for (var i=0; i<amount; i++){
+            make_note();
+        }
+    }
 	   
     MIDI.loadPlugin({
 		soundfontUrl: "./soundfont2/",
 		instrument: "acoustic_grand_piano",
 		onprogress: function(state, progress) {
-			//console.log(state, progress);
 		},
 		onsuccess: function() {
             midiLoaded=true;
@@ -104,7 +110,7 @@ var interval = setInterval(myFunction, counter);
 		for(var i =2; i>=0; i--){          
             var pitch=scale[Math.floor(Math.random() * scale.length)];
             pitchList.push(pitch);
-			musicSnake.push({x: i, y:3, color:"#f42ada", pitch:pitch});
+			musicSnake.push({x: i, y:3, color:pitchToColor[pitch.toString()], pitch:pitch});
 		}
 	}
 	
@@ -145,8 +151,9 @@ var headColor;
 		}
 		
         //if it eats a note
+        ateFood(headX, headY, availableNotes);
 		if(headX==food.x && headY==food.y){
-			var tail={x: headX, y: headY, pitch:headPitch, color:"green"}; 
+			var tail={x: headX, y: headY, pitch:headPitch, color:headColor}; 
             var delay=0;
 			var note=food.pitch; 
 			var velocity = 127; 
@@ -168,16 +175,20 @@ var headColor;
 			tail.x = headX;
             tail.y = headY;
             tail.pitch=headPitch;
-            tail.color="yellow";
+            tail.color=headColor;
 		}
 		musicSnake.unshift(tail);
         //draw the snake
 		for(var i = 0; i < musicSnake.length; i++){
 			var c = musicSnake[i];
-			color_note(c.x, c.y);
+			color_pitch(c.x, c.y, c.color);
 		}
-        color_pitch(food.x, food.y, food.color);
-        //console.log(availableNotes.length);
+        
+        for (var k=0; k<availableNotes.length; k++){
+            f=availableNotes[k];
+            color_pitch(f.x, f.y, f.color);
+            
+        }
 		
 
         var score_text = "Score: " + score;
@@ -194,15 +205,22 @@ var headColor;
 		return false;
 	}
     
-    //Colors notes
-	function color_note(x, y){
-		ctx.fillStyle = headColor;
-		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
-		ctx.strokeStyle = "white";
-		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
-	}
+    //checks if the snake has eaten any food, and returns the location of that food item
+    function ateFood(x, y, foodArray){
+        for (var k=0; k<availableNotes.length; k++){
+            food=availableNotes[k];
+            if(x==food.x && y==food.y){
+                console.log(food, "food collide");
+                return food;
+            }
+            
+            
+        }
+        return null;
+    }
+
     
-    //Colors pitches with different colors- will replace color_note
+    //Colors pitches with different colors
 	function color_pitch(x, y, color){
 		ctx.fillStyle = color;
 		ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
