@@ -4,24 +4,21 @@ $(document).ready(function(){
 	var ctx=canvas.getContext("2d");
 	var width=$("#canvas").width();
 	var height=$("#canvas").height();
-	
+	var channeltoPlay=0; //default plays the piano
 	var cellSize=20;
-	var direction; 
-	var notes;
+	var direction, notes, headColor; 
 	var score=0;
-	
-	var musicSnake=[]; //array of notes in the snake
-	var availableNotes=[]; //array of notes/food currently on the canvas
-    
 
-   var pitchToColor= {
-      "53":"#F48FB1" ,  "55":  "#C51162", "57": "#7B1FA2" , "58": "#3F51B5", "60":"#7986CB" , "62": "#006064", "64":"#9ccc65" , "65": "#FFEE58"
-        
-        };
+    var musicSnake=[]; //array of notes in the snake
+	var availableNotes=[]; //array of notes/food currently on the canvas
+    var pitchToColor= {
+      "53":"#F48FB1" ,  "55":  "#C51162", "57": "#7B1FA2" , "58": "#3F51B5", "60":"#7986CB" , "62": "#006064", "64":"#9ccc65" , "65": "#FFEE58"};
     var scale=[53,55,57,58,60,62,64,65]; //f major scale
-    
     var pitchList=[]; //list of notes in the snake
     var oldPitchListLen=3; //number of notes from cycle before
+    
+    var instrumentToChannel={"Piano":0, "Drums":1}
+    
     function init(){
         direction="right";
 		make_snake();
@@ -49,13 +46,15 @@ var interval = setInterval(myFunction, counter);
             make_note();
         }
     }
-	   
+	
     MIDI.loadPlugin({
 		soundfontUrl: "./soundfont2/",
-		instrument: "acoustic_grand_piano",
+		instruments: ["acoustic_grand_piano", 'synth_drum'],
 		onprogress: function(state, progress) {
 		},
 		onsuccess: function() {
+            MIDI.programChange(0, 0); // set channel 0 to piano
+            MIDI.programChange(1, 118); // set channel 1 to synth drum
             midiLoaded=true;
             init();
             
@@ -67,10 +66,10 @@ var interval = setInterval(myFunction, counter);
         var duration=0.0;
             var delay = .50; 
 			var velocity = 127;
-			MIDI.setVolume(0, 127);
+        MIDI.setVolume(channeltoPlay, 127);
         for (var i=0; i<pitchList.length; i++){
-            MIDI.noteOn(0, pitchList[i], velocity, delay);
-			MIDI.noteOff(0, pitchList[i], delay +duration);
+            MIDI.noteOn(channeltoPlay, pitchList[i], velocity, delay);
+			MIDI.noteOff(channeltoPlay, pitchList[i], delay +duration);
             delay=delay+.5;
             
         }
@@ -80,9 +79,9 @@ var interval = setInterval(myFunction, counter);
     function playNote(note,duration){
         var delay = 0;
 			var velocity = 127;
-			MIDI.setVolume(0, 127);
-			MIDI.noteOn(0, note, velocity, delay);
-			MIDI.noteOff(0, note, delay + duration);
+			MIDI.setVolume(channeltoPlay, 127);
+			MIDI.noteOn(channeltoPlay, note, velocity, delay);
+			MIDI.noteOff(channeltoPlay, note, delay + duration);
         
     }
 	 
@@ -104,6 +103,12 @@ var interval = setInterval(myFunction, counter);
         };
 		
 	})
+    
+    //change the instrument to selected inst from dropdown menu
+    document.getElementById("instrumentButton").onclick=function save(){
+        var inst=document.getElementById("mySelect").value;
+        channeltoPlay=instrumentToChannel[inst];
+    }
     
     //making the snake, initialized with a length of 3
 	function make_snake(){		
@@ -128,7 +133,7 @@ var interval = setInterval(myFunction, counter);
         availableNotes.push(food);
         return food;
 	}
-var headColor;
+
     function paint(){
 		ctx.fillStyle = "white";
 		ctx.fillRect(0, 0, width, height);
@@ -156,10 +161,7 @@ var headColor;
 			var tail={x: headX, y: headY, pitch:headPitch, color:headColor}; 
             var delay=0;
 			var note=food.pitch; 
-			var velocity = 127; 
-			MIDI.setVolume(0, 127);
-			MIDI.noteOn(0, note, velocity, delay);
-			MIDI.noteOff(0, note, delay + 1.75);
+			playNote(note,1.0);
 			score++;
             var gonefood=availableNotes.indexOf(food);
             if (gonefood > -1) {
@@ -211,7 +213,6 @@ var headColor;
         for (var k=0; k<availableNotes.length; k++){
             food=availableNotes[k];
             if(x==food.x && y==food.y){
-                console.log(food, "food collide");
                 return food;
             }
             
@@ -229,14 +230,6 @@ var headColor;
 		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+		
 })
 
