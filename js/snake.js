@@ -165,6 +165,7 @@ var headColor;
             if (gonefood > -1) {
     availableNotes.splice(gonefood, 1);
 }
+            pitchList.push(food.pitch);
             make_note();
 
             
