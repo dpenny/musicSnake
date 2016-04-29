@@ -17,7 +17,7 @@ $(document).ready(function(){
     var pitchList=[]; //list of notes in the snake
     var oldPitchListLen=3; //number of notes from cycle before
     
-    var instrumentToChannel={"Piano":0, "Drums":1}
+    var instrumentToChannel={"Piano":0, "Drums":1, "Trumpet":2}
     
     function init(){
         direction="right";
@@ -49,12 +49,13 @@ var interval = setInterval(myFunction, counter);
 	
     MIDI.loadPlugin({
 		soundfontUrl: "./soundfont2/",
-		instruments: ["acoustic_grand_piano", 'synth_drum'],
+		instruments: ["acoustic_grand_piano", 'synth_drum', "trumpet"],
 		onprogress: function(state, progress) {
 		},
 		onsuccess: function() {
             MIDI.programChange(0, 0); // set channel 0 to piano
             MIDI.programChange(1, 118); // set channel 1 to synth drum
+            MIDI.programChange(2, 56); //trumpet
             midiLoaded=true;
             init();
             
@@ -161,7 +162,7 @@ var interval = setInterval(myFunction, counter);
 			var tail={x: headX, y: headY, pitch:headPitch, color:headColor}; 
             var delay=0;
 			var note=food.pitch; 
-			playNote(note,1.0);
+			playNote(note,.50);
 			score++;
             var gonefood=availableNotes.indexOf(food);
             if (gonefood > -1) {
