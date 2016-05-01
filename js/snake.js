@@ -18,7 +18,7 @@ $(document).ready(function(){
     var oldPitchListLen=3; //number of notes from cycle before
     
     var instrumentToChannel={"Piano":0, "Drums":1, "Trumpet":2}
-    
+    $('.ui.dropdown').dropdown();
     function init(){
         direction="right";
 		make_snake();
@@ -53,6 +53,7 @@ var interval = setInterval(myFunction, counter);
 		onprogress: function(state, progress) {
 		},
 		onsuccess: function() {
+             
             MIDI.programChange(0, 0); // set channel 0 to piano
             MIDI.programChange(1, 118); // set channel 1 to synth drum
             MIDI.programChange(2, 56); //trumpet
@@ -107,7 +108,7 @@ var interval = setInterval(myFunction, counter);
     
     //change the instrument to selected inst from dropdown menu
     document.getElementById("instrumentButton").onclick=function save(){
-        var inst=document.getElementById("mySelect").value;
+        var inst=document.getElementById("instrumentSelect").value;
         channeltoPlay=instrumentToChannel[inst];
     }
     
@@ -231,6 +232,7 @@ var interval = setInterval(myFunction, counter);
 		ctx.strokeRect(x*cellSize, y*cellSize, cellSize, cellSize);
 	}
 	
+
 		
 })
 
